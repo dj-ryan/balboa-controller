@@ -1,1 +1,2 @@
+# normalize 'lf' file endings in repo to work with unix
 text eol=LF
