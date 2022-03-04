@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(balboa-controller)
+project(balboa_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -7,7 +7,13 @@ project(balboa-controller)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED geometry_msgs roscpp rospy std_msgs)
+find_package(catkin REQUIRED 
+	geometry_msgs 
+	roscpp 
+	rospy 
+	std_msgs
+	message_generation
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -43,11 +49,10 @@ find_package(catkin REQUIRED geometry_msgs roscpp rospy std_msgs)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+   FILES
+   irArray.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -64,10 +69,10 @@ find_package(catkin REQUIRED geometry_msgs roscpp rospy std_msgs)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -103,6 +108,8 @@ catkin_package(
 #  LIBRARIES lab1
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
+	CATKIN_DEPENDS roscpp rospy std_msgs
+	CATKIN_DEPENDS message_runtime
 )
 
 ###########
@@ -113,7 +120,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-# ${catkin_INCLUDE_DIRS}
+ ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -201,12 +208,15 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+##COMMENTED OUT BY BETHANY - TESTING ROS::CONSOLE
 
-catkin_install_python(PROGRAMS src/proc_data.py
-	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-	)
+# catkin_install_python(PROGRAMS src/proc_data.py
+	# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+	# )
 
-catkin_install_python(PROGRAMS src/pidLab1.py
-	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-	)
+# catkin_install_python(PROGRAMS src/pidLab1.py
+	# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+	# )
 
+add_executable(mapLab2 src/mapLab2.cpp)
+target_link_libraries(mapLab2 ${catkin_LIBRARIES})
