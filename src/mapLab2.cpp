@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	ros::Subscriber sub = n.subscribe("balboaLL", 1000, callbackIR);
 	ros::Publisher pub = n.advertise<balboa_controller::irArray>("irData", 10);
 	
-	ros::Rate loop_rate(1);
+	ros::Rate loop_rate(10);
 	
 	while(ros::ok()){
 		pub.publish(ir);
