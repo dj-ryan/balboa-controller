@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
 	rospy 
 	std_msgs
 	message_generation
+	geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -218,5 +219,10 @@ include_directories(
 	# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 	# )
 
-add_executable(mapLab2 src/mapLab2.cpp)
-target_link_libraries(mapLab2 ${catkin_LIBRARIES})
+# add_executable(pidLab2 src/pidLab2.cpp)
+# target_link_libraries(pidLab2 ${catkin_LIBRARIES})
+# add_dependencies(pidLab2 ${catkin_EXPORTED_TARGETS})
+
+add_executable(ir_reactive_control src/ir_reactive_control.cpp)
+target_link_libraries(ir_reactive_control ${catkin_LIBRARIES})
+add_dependencies(ir_reactive_control ${catkin_EXPORTED_TARGETS})
