@@ -28,7 +28,7 @@ oldAngError = 0
 oldDisError = 0
 
 # PID loop when new commands received 
-def callbackIMU(data):
+def callbackIMU(msg):
 
     # Initialize variables
     global initFlag
@@ -38,16 +38,18 @@ def callbackIMU(data):
     global oldDisError
     
     # Grab encoder state to initialize target values at current state
-    # if(initFlag == 0):
-    #     initIMU = data
-    #     initFlag = 1
-    #     targetAngle = initIMU.angleX
-    #     targetDistance = initIMU.distanceRight
+    if(initFlag == 0):
+        initIMU = msg
+        initFlag = 1
+        targetAngle = initIMU.angleX
+        targetDistance = initIMU.distanceRight
 
     # PID error calculation
-    angError = (targetAngle - data.angleX)
-    disError = (targetDistance - data.distanceRight)
-    rospy.loginfo("dis error val: %d", disError)
+    angError = (targetAngle - msg.angleX)
+
+    disError = (targetDistance - msg.distanceRight)
+    rospy.loginfo("targetDistance: %d | currentDistance: %d | targetAngle: %d | currentAngle: %d", targetDistance, msg.distanceRight, targetAngle, msg.angleX)
+    rospy.loginfo("disErrorVal: %d | angErrorVal: %d", disError, angError)
     
     # PID calc for angle and distance
     angPidVal = (pValAng * angError) + (dValAng * (angError - oldAngError)) 
@@ -55,7 +57,7 @@ def callbackIMU(data):
     
     # Publish PID value to motors
 
-    rospy.loginfo("motor power val: %d", disPidVal)
+    #rospy.loginfo("motor power val: %d", disPidVal)
     motor.right = angPidVal + disPidVal
     motor.left = -angPidVal + disPidVal
 
@@ -64,14 +66,14 @@ def callbackIMU(data):
     oldDisError = disError
 
 # Set new distance target from published data
-def callbackDrive(data):
+def callbackDrive(msg):
     global targetDistance 
-    targetDistance = data
+    targetDistance = msg.data
 
 # Set new angle target from published data
-def callbackTurn(data):
+def callbackTurn(msg):
     global targetAngle
-    targetAngle = data
+    targetAngle = msg.data
 
 def pidSubscriptions():
 

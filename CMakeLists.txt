@@ -209,18 +209,27 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-# ADDED BY GROUP
-catkin_install_python(PROGRAMS src/pidMap.py
-	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-	)
+##COMMENTED OUT BY BETHANY - TESTING ROS::CONSOLE
 
-catkin_install_python(PROGRAMS src/pidLab2.py
-DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# catkin_install_python(PROGRAMS src/proc_data.py
+	# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+	# )
+
+# catkin_install_python(PROGRAMS src/pidLab1.py
+	# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+	# )
+
+# add_executable(pidLab2 src/pidLab2.cpp)
+# target_link_libraries(pidLab2 ${catkin_LIBRARIES})
+# add_dependencies(pidLab2 ${catkin_EXPORTED_TARGETS})
 
 add_executable(ir_reactive_control src/ir_reactive_control.cpp)
 target_link_libraries(ir_reactive_control ${catkin_LIBRARIES})
 add_dependencies(ir_reactive_control ${catkin_EXPORTED_TARGETS})
+
+add_executable(mapLab2 src/mapLab2.cpp)
+target_link_libraries(mapLab2 ${catkin_LIBRARIES})
+add_dependencies(mapLab2 ${catkin_EXPORTED_TARGETS})
 
 add_executable(mapDrive src/mapDrive.cpp)
 target_link_libraries(mapDrive ${catkin_LIBRARIES})
