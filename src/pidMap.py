@@ -2,7 +2,7 @@
 from __future__ import print_function
 from balboa_core.msg import balboaMotorSpeeds
 from balboa_core.msg import balboaLL
-from std_msgs.msg import Int64
+from std_msgs.msg import Int32
 import rospy
 
 # Declare and initialize variables 
@@ -38,21 +38,24 @@ def callbackIMU(data):
     global oldDisError
     
     # Grab encoder state to initialize target values at current state
-    if(initFlag == 0):
-        initIMU = data
-        initFlag = 1
-        targetAngle = initIMU.angleX
-        targetDistance = initIMU.distanceRight
+    # if(initFlag == 0):
+    #     initIMU = data
+    #     initFlag = 1
+    #     targetAngle = initIMU.angleX
+    #     targetDistance = initIMU.distanceRight
 
     # PID error calculation
     angError = (targetAngle - data.angleX)
     disError = (targetDistance - data.distanceRight)
+    rospy.loginfo("dis error val: %d", disError)
     
     # PID calc for angle and distance
     angPidVal = (pValAng * angError) + (dValAng * (angError - oldAngError)) 
     disPidVal = (pValDis * disError) + (dValDis * (disError - oldDisError))
     
     # Publish PID value to motors
+
+    rospy.loginfo("motor power val: %d", disPidVal)
     motor.right = angPidVal + disPidVal
     motor.left = -angPidVal + disPidVal
 
@@ -79,8 +82,8 @@ def pidSubscriptions():
     rospy.loginfo("STARTED")
 
     # Declare publishers and subscribers
-    rospy.Subscriber('/mapDrive', Int64, callbackDrive)
-    rospy.Subscriber('/mapTurn', Int64, callbackTurn)
+    rospy.Subscriber('/mapDrive', Int32, callbackDrive)
+    rospy.Subscriber('/mapTurn', Int32, callbackTurn)
     rospy.Subscriber('/balboaLL', balboaLL, callbackIMU)
     pubMotor = rospy.Publisher('/motorSpeeds', balboaMotorSpeeds, queue_size = 10)
 
@@ -91,14 +94,14 @@ def pidSubscriptions():
     while not rospy.is_shutdown():
 
         # State node has begun main loop
-        rospy.loginfo("while")
+        rospy.loginfo("looped")
 
         # Publish latest motor speeds 
         pubMotor.publish(motor)
 
         # Set motor speeds equal to zero when no new commands
-        motor.left = 0
-        motor.right = 0
+        # motor.left = 0
+        # motor.right = 0
 
         # Sleep
         rate.sleep()
