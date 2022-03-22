@@ -84,7 +84,7 @@ def pidSubscriptions():
     rospy.loginfo("STARTED")
 
     # Declare publishers and subscribers
-    rospy.Subscriber('/mapDrive', Int32, callbackDrive)
+    rospy.Subscriber('/mapDrive', Int32, callbackDrive, queue_size = 15)
     rospy.Subscriber('/mapTurn', Int32, callbackTurn)
     rospy.Subscriber('/balboaLL', balboaLL, callbackIMU)
     pubMotor = rospy.Publisher('/motorSpeeds', balboaMotorSpeeds, queue_size = 10)
