@@ -4,6 +4,43 @@
 
 #include <cmath>
 
+#include <map>
+#include <string>
+
+std::map<int, int> exampleRow = {{0, 0}, {1, 0}, {2, 1}, {3, 1}, {4, 2}, {5, 2}, {6, 2}, {7, 1}, {8, 1}, {9, 0}, {10, 0}};
+
+std::string printMapRow(std::map<int, int> row, int i)
+{
+	std::string rowOutput = "row " + std::to_string(i) + " => ";
+	for (const auto &dataPoint : row)
+	{
+		if (dataPoint.second == 2)
+		{
+			rowOutput.append("0");
+		}
+		else if (dataPoint.second == 2)
+		{
+			rowOutput.append("o");
+		}
+		else
+		{
+			rowOutput.append("_");
+		}
+	}
+
+	return rowOutput;
+}
+
+void printMap(std::vector<std::map<int, int>> rows)
+{
+	int i = 0;
+	for (std::map<int, int> r : rows)
+	{
+		ROS_INFO(printMapRow(r, i).c_str());
+		i++;
+	}
+}
+
 // Declare and initialize variables
 balboa_core::balboaLL robotData;
 
@@ -23,6 +60,9 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "mapDrive");
 	ros::NodeHandle node;
 
+	// Example row print 
+	ROS_INFO(printMapRow(exampleRow, 0).c_str());
+
 	// Declare subscribers and publishers
 	ros::Subscriber sub = node.subscribe("balboaLL", 1000, callbackIMU);
 
@@ -32,14 +72,12 @@ int main(int argc, char **argv)
 	// Set standard distance targets and turn targets
 	std_msgs::Int32 targetDrive;
 	std_msgs::Int32 targetAngle;
-	targetDrive.data = robotData.distanceRight;
-	targetAngle.data = robotData.angleX;
 
 	// Initialize map grid variables
 	int snake[200];
 
 	int totalRows = 4;
-	int rowLength = 1000;
+	int rowLength = 3000;
 	int doneOnce = 0;
 	int rightTurn = 96000;
 	int leftTurn = -96000;
@@ -47,7 +85,7 @@ int main(int argc, char **argv)
 	int finishLine = 0;
 
 	// Set loop rate
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(0.5);
 
 	// Main node loop
 	while (ros::ok())
@@ -64,56 +102,58 @@ int main(int argc, char **argv)
 				finishLine = robotData.distanceRight + rowLength;
 
 				// Remember robot's current orientation
-				targetAngle.data = robotData.angleX;
-				targetDrive.data = robotData.distanceRight;
+				// targetAngle.data = robotData.angleX;
+				// targetDrive.data = robotData.distanceRight;
 
 				// Drive the first row
-				for (int j = 0; targetDrive.data < finishLine; j++)
+				while (robotData.distanceRight < finishLine)
 				{
-					targetDrive.data += 50;
+					targetDrive.data = 500;
 					pubDrive.publish(targetDrive);
 
-					ROS_INFO("target: %d - Sens1: %d | Sens2: %d | Sens4: %d | Sens5: %d", targetDrive.data, robotData.IRsensor1, robotData.IRsensor2, robotData.IRsensor4, robotData.IRsensor5);
-					snake[j - 1] = robotData.IRsensor1;
+					// ROS_INFO("target: %d - Sens1: %d | Sens2: %d | Sens4: %d | Sens5: %d", targetDrive.data, robotData.IRsensor1, robotData.IRsensor2, robotData.IRsensor4, robotData.IRsensor5);
+					ROS_INFO("target: %d", targetDrive.data);
+					// snake[j - 1] = robotData.IRsensor1;
 
 					ros::spinOnce();
 					loop_rate.sleep();
 				}
+
 				ROS_INFO(" == FINISHED ROW [%d] == | finishline: %d", i, finishLine);
 
 				// Make first 90 deg turn out of row, alternate left and right turns
 				if (i % 2 == 0)
 				{
-					targetAngle.data += rightTurn;
+					targetAngle.data = rightTurn;
 					pubTurn.publish(targetAngle);
 					while (abs(robotData.angleX) < abs(targetAngle.data))
 					{
 						ros::spinOnce();
-						// do nothing
+						// Do nothing
 					}
 				}
 				else
 				{
-					targetAngle.data += leftTurn;
+					targetAngle.data = leftTurn;
 					pubTurn.publish(targetAngle);
 					while (abs(robotData.angleX) > abs(targetAngle.data))
 					{
 						ros::spinOnce();
-						// do nothing
+						// Do nothing
 					}
 				}
 
 				// Update right encoder after turn
 				targetDrive.data = robotData.distanceRight;
-				ROS_INFO(" == Compleated first turn | update encoder: %d == ", targetDrive.data);
+				ROS_INFO(" == Completed first turn | update encoder: %d == ", targetDrive.data);
 
 				// Drive to next row
-				targetDrive.data += goToNextRow;
+				targetDrive.data = goToNextRow;
 				pubDrive.publish(targetDrive);
 				while (abs(robotData.distanceRight) < abs(targetDrive.data))
 				{
 					ros::spinOnce();
-					// do nothing
+					// Do nothing
 				}
 
 				ROS_INFO(" == Arrived at next row == ");
@@ -121,26 +161,26 @@ int main(int argc, char **argv)
 				// Make second 90 deg turn into row, alternate left and right turns
 				if (i % 2 == 0)
 				{
-					targetAngle.data += rightTurn;
-					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) < abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// do nothing
-					}
-				}
-				else
-				{
-					targetAngle.data += leftTurn;
+					targetAngle.data = leftTurn;
 					pubTurn.publish(targetAngle);
 					while (abs(robotData.angleX) > abs(targetAngle.data))
 					{
 						ros::spinOnce();
-						// do nothing
+						// Do nothing
+					}
+				}
+				else
+				{
+					targetAngle.data = rightTurn;
+					pubTurn.publish(targetAngle);
+					while (abs(robotData.angleX) < abs(targetAngle.data))
+					{
+						ros::spinOnce();
+						// Do nothing
 					}
 				}
 
-				ROS_INFO(" == Compleated second turn! == ");
+				ROS_INFO(" == Completed second turn! == ");
 			}
 		}
 

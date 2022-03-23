@@ -68,12 +68,12 @@ def callbackIMU(msg):
 # Set new distance target from published data
 def callbackDrive(msg):
     global targetDistance 
-    targetDistance = msg.data
+    targetDistance = targetDistance + msg.data
 
 # Set new angle target from published data
 def callbackTurn(msg):
     global targetAngle
-    targetAngle = msg.data
+    targetAngle = targetAngle + msg.data
 
 def pidSubscriptions():
 
