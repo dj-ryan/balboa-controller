@@ -8,33 +8,86 @@
 // Declare and initialize variables
 balboa_core::balboaLL robotData;
 
-// Create variable for storing reflectance sensor data for mapping 
-std::map<int, int> exampleRow = {{0, 0}, {1, 0}, {2, 1}, {3, 1}, {4, 2}, {5, 2}, {6, 2}, {7, 1}, {8, 1}, {9, 0}, {10, 0}};
-
-// Store ASCII characters corresponding to mapped sensor values 
-std::string printMapRow(std::map<int, int> row, int i)
+// Create variable for storing reflectance sensor data for mapping
+struct IrValues
 {
-	std::string rowOutput = "row " + std::to_string(i) + " => ";
+	int sensor1;
+	int sensor2;
+	int sensor4;
+	int sensor5;
+};
+
+std::map<int, struct IrValues>	rowCapture;
+
+// Store ASCII characters corresponding to mapped sensor values
+void printMapRow(std::map<int, struct IrValues> row, int i)
+{
+	std::string row1Output = "row " + std::to_string(i) + " => ";
+	std::string row2Output = "row " + std::to_string(i + 1) + " => ";
+	std::string row4Output = "row " + std::to_string(i + 2) + " => ";
+	std::string row5Output = "row " + std::to_string(i + 3) + " => ";
+
 	for (const auto &dataPoint : row)
 	{
-		if (dataPoint.second == 2)
+		if (dataPoint.second.sensor1 > 1600)
 		{
-			rowOutput.append("0");
+			row1Output.append("0");
 		}
-		else if (dataPoint.second == 2)
+		else if (dataPoint.second.sensor1 <= 1600 && dataPoint.second.sensor1 >= 500)
 		{
-			rowOutput.append("o");
+			row1Output.append("o");
 		}
 		else
 		{
-			rowOutput.append("_");
+			row1Output.append("_");
+		}
+		if (dataPoint.second.sensor2 > 1600)
+		{
+			row2Output.append("0");
+		}
+		else if (dataPoint.second.sensor2 <= 1600 && dataPoint.second.sensor2 >= 500)
+		{
+			row2Output.append("o");
+		}
+		else
+		{
+			row2Output.append("_");
+		}
+		if (dataPoint.second.sensor4 > 1600)
+		{
+			row4Output.append("0");
+		}
+		else if (dataPoint.second <= 1600 && dataPoint.second.sensor4 >= 500)
+		{
+			row4Output.append("o");
+		}
+		else
+		{
+			row4Output.append("_");
+		}
+		if (dataPoint.second.sensor5 > 1600)
+		{
+			row5Output.append("0");
+		}
+		else if (dataPoint.second.sensor5 <= 1600 && dataPoint.second.sensor5 >= 500)
+		{
+			row5Output.append("o");
+		}
+		else
+		{
+			row5Output.append("_");
 		}
 	}
 
-	return rowOutput;
+	ROS_INFO(row1Output.c_str())
+	ROS_INFO(row2Output.c_str())
+	ROS_INFO(row4Output.c_str())
+	ROS_INFO(row5Output.c_str())
+
+	// return rowOutput;
 }
 
-// Print ASCII map from stored characters 
+// Print ASCII map from stored characters
 void printMap(std::vector<std::map<int, int>> rows)
 {
 	int i = 0;
@@ -61,7 +114,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "mapDrive");
 	ros::NodeHandle node;
 
-	// Example row print 
+	// Example row print
 	ROS_INFO(printMapRow(exampleRow, 0).c_str());
 
 	// Declare subscribers and publishers
@@ -76,15 +129,15 @@ int main(int argc, char **argv)
 
 	// Initialize map grid variables
 	int totalRows = 4;
-	int rowLength = 3000;
+	int rowLength = 6000;
 	int doneOnce = 0;
 	int rightTurn = 96000;
 	int leftTurn = -96000;
-	int goToNextRow = 400;
+	int goToNextRow = 200;
 	int finishLine = 0;
 
 	// Set loop rate
-	ros::Rate loop_rate(0.5);
+	ros::Rate loop_rate(0.3);
 
 	// Main node loop
 	while (ros::ok())
@@ -99,63 +152,67 @@ int main(int argc, char **argv)
 			{
 				ros::spinOnce();
 
-				// Add robot's current encoder amount to the "finish line" or total row distance
-				// finishLine = abs(robotData.distanceRight) + rowLength;
-
-				// Remember robot's current orientation
-				// targetAngle.data = robotData.angleX;
-				// targetDrive.data = robotData.distanceRight;
+				struct IrValues irValues;
 
 				// Drive the first row
-				// while (abs(robotData.distanceRight) < abs(finishLine))
-				for (int j = 0; j < 5; j++)
+				for (int j = 0; j < 10; j++)
 				{
-					targetDrive.data = 500;
+
+					irValues.sensor1 = robotData.IRsensor1;
+					irValues.sensor2 = robotData.IRsensor2;
+					irValues.sensor4 = robotData.IRsensor4;
+					irValues.sensor5 = robotData.IRsensor5;
+
+					rowCapture.insert(j, irValues);
+
+					targetDrive.data = 300;
 					pubDrive.publish(targetDrive);
 
-					// ROS_INFO("target: %d - Sens1: %d | Sens2: %d | Sens4: %d | Sens5: %d", targetDrive.data, robotData.IRsensor1, robotData.IRsensor2, robotData.IRsensor4, robotData.IRsensor5);
-					ROS_INFO("finish line: %d", finishLine);
+					ROS_INFO("Sent target: %d", targetDrive);
 
 					ros::spinOnce();
 					loop_rate.sleep();
 				}
 
-				ROS_INFO(" == FINISHED ROW [%d] == | finishline: %d", i, finishLine);
+				ROS_INFO(" == FINISHED ROW ==");
+
+				printMapRow(rowCapture, i);
 
 				// Make first 90 deg turn out of row, alternate left and right turns
 				if (i % 2 == 0)
 				{
 					targetAngle.data = rightTurn;
 					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) < abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// Do nothing
-					}
+					ros::spinOnce();
+					// while (abs(robotData.angleX) < abs(targetAngle.data))
+					// {
+					// 	ros::spinOnce();
+					// 	// Do nothing
+					// }
 				}
 				else
 				{
 					targetAngle.data = leftTurn;
 					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) > abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// Do nothing
-					}
+					ros::spinOnce();
+					// while (abs(robotData.angleX) > abs(targetAngle.data))
+					// {
+					// 	ros::spinOnce();
+					// 	// Do nothing
+					// }
 				}
 
-				// Update right encoder after turn
-				targetDrive.data = robotData.distanceRight;
-				ROS_INFO(" == Completed first turn | update encoder: %d == ", targetDrive.data);
+				ROS_INFO(" == Completed first turn ");
 
 				// Drive to next row
 				targetDrive.data = goToNextRow;
 				pubDrive.publish(targetDrive);
-				while (abs(robotData.distanceRight) < abs(targetDrive.data))
-				{
-					ros::spinOnce();
-					// Do nothing
-				}
+				ros::spinOnce();
+				// while (abs(robotData.distanceRight) < abs(targetDrive.data))
+				// {
+				// 	ros::spinOnce();
+				// 	// Do nothing
+				// }
 
 				ROS_INFO(" == Arrived at next row == ");
 
@@ -164,21 +221,23 @@ int main(int argc, char **argv)
 				{
 					targetAngle.data = rightTurn;
 					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) < abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// Do nothing
-					}
+					ros::spinOnce();
+					// while (abs(robotData.angleX) < abs(targetAngle.data))
+					// {
+					// 	ros::spinOnce();
+					// 	// Do nothing
+					// }
 				}
 				else
 				{
 					targetAngle.data = leftTurn;
 					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) > abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// Do nothing
-					}
+					ros::spinOnce();
+					// while (abs(robotData.angleX) > abs(targetAngle.data))
+					// {
+					// 	ros::spinOnce();
+					// 	// Do nothing
+					// }
 				}
 
 				ROS_INFO(" == Completed second turn! == ");
