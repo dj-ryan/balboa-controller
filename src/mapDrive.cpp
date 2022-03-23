@@ -6,103 +6,99 @@
 #include <string>
 
 // Declare and initialize variables
-balboa_core::balboaLL robotData;
+int IR1;
+int IR2;
+int IR4;
+int IR5;
 
-// Create variable for storing reflectance sensor data for mapping
-struct IrValues
+// Print ASCII characters corresponding to mapped sensor values
+void printMap(int IRmap1[16][4], int IRmap2[16][4], int IRmap4[16][4], int IRmap5[16][4])
 {
-	int sensor1;
-	int sensor2;
-	int sensor4;
-	int sensor5;
-};
+	// Create variable to store ASCII values
+	char fullMap[16][4][4];
+	
+	// Determine which white/gray/black ASCII character to store 
+	for (int i = 0; i < 4; i++)
+	{
+		for(int j = 0; j< 16; j++) {
+			
+			// Sensor 1
+			if (IRmap1[i][j] > 1600)
+			{
+				fullMap[j][1][i] = '0';
+			}
+			else if (IRmap1[i][j] <= 1600 && IRmap1[i][j] >= 500)
+			{
+				fullMap[j][1][i] = 'o';	
+			}
+			else
+			{
+				fullMap[j][1][i] = '_';
+			}
 
-std::map<int, struct IrValues> rowCapture;
+			// Sensor 2
+			if (IRmap2[i][j] > 1600)
+			{
+				fullMap[j][2][i] = '0';
+			}
+			else if (IRmap2[i][j] <= 1600 && IRmap2[i][j] >= 500)
+			{
+				fullMap[j][2][i] = 'o';
+			}
+			else
+			{
+				fullMap[j][2][i] = '_';
+			}
 
-// Store ASCII characters corresponding to mapped sensor values
-// void printMapRow(std::map<int, struct IrValues> row, int i)
-// {
-// 	std::string row1Output = "row " + std::to_string(i) + " => ";
-// 	std::string row2Output = "row " + std::to_string(i + 1) + " => ";
-// 	std::string row4Output = "row " + std::to_string(i + 2) + " => ";
-// 	std::string row5Output = "row " + std::to_string(i + 3) + " => ";
+			// Sensor 4
+			if (IRmap4[i][j] > 1600)
+			{
+				fullMap[j][3][i] = '0';
+			}
+			else if (IRmap4[i][j] <= 1600 && IRmap4[i][j] >= 500)
+			{
+				fullMap[j][3][i] = 'o';
+			}
+			else
+			{
+				fullMap[j][3][i] = '_';
+			}
 
-// 	for (const auto &dataPoint : row)
-// 	{
-// 		if (dataPoint.second.sensor1 > 1600)
-// 		{
-// 			row1Output.append("0");
-// 		}
-// 		else if (dataPoint.second.sensor1 <= 1600 && dataPoint.second.sensor1 >= 500)
-// 		{
-// 			row1Output.append("o");
-// 		}
-// 		else
-// 		{
-// 			row1Output.append("_");
-// 		}
-// 		if (dataPoint.second.sensor2 > 1600)
-// 		{
-// 			row2Output.append("0");
-// 		}
-// 		else if (dataPoint.second.sensor2 <= 1600 && dataPoint.second.sensor2 >= 500)
-// 		{
-// 			row2Output.append("o");
-// 		}
-// 		else
-// 		{
-// 			row2Output.append("_");
-// 		}
-// 		if (dataPoint.second.sensor4 > 1600)
-// 		{
-// 			row4Output.append("0");
-// 		}
-// 		else if (dataPoint.second <= 1600 && dataPoint.second.sensor4 >= 500)
-// 		{
-// 			row4Output.append("o");
-// 		}
-// 		else
-// 		{
-// 			row4Output.append("_");
-// 		}
-// 		if (dataPoint.second.sensor5 > 1600)
-// 		{
-// 			row5Output.append("0");
-// 		}
-// 		else if (dataPoint.second.sensor5 <= 1600 && dataPoint.second.sensor5 >= 500)
-// 		{
-// 			row5Output.append("o");
-// 		}
-// 		else
-// 		{
-// 			row5Output.append("_");
-// 		}
-// 	}
+			// Sensor 5
+			if (IRmap5[i][j] > 1600)
+			{
+				fullMap[j][4][i] = '0';
+			}
+			else if (IRmap5[i][j] <= 1600 && IRmap5[i][j] >= 500)
+			{
+				fullMap[j][4][i] = 'o';
+			}
+			else
+			{
+				fullMap[j][4][i] = '_';
+			}
+		}
+	}
 
-	// ROS_INFO(row1Output.c_str())
-	// ROS_INFO(row2Output.c_str())
-	// ROS_INFO(row4Output.c_str())
-	// ROS_INFO(row5Output.c_str())
+	// Print ASCII characters to console in map grid  
+	for (int i = 0; i < 4; i++)
+	{
+		for (int k = 0; k < 4; k++) 
+		{
+			ROS_INFO("%c %c %c %c %c %c %c %c %c %c %c %c %c %c %c %c",fullMap[0][i][k],fullMap[1][i][k],fullMap[2][i][k],fullMap[3][i][k],fullMap[4][i][k],fullMap[5][i][k],fullMap[6][i][k],fullMap[7][i][k],fullMap[8][i][k],fullMap[9][i][k],fullMap[10][i][k],fullMap[11][i][k],fullMap[12][i][k],fullMap[13][i][k],fullMap[14][i][k],fullMap[15][i][k]);
+		}
+	}
 
-	// return rowOutput;
-//}
-
-// Print ASCII map from stored characters
-// void printMap(std::vector<std::map<int, int>> rows)
-// {
-// 	int i = 0;
-// 	for (std::map<int, int> r : rows)
-// 	{
-// 		ROS_INFO(printMapRow(r, i).c_str());
-// 		i++;
-// 	}
-// }
+}
 
 // Store robot IR data when received
-void callbackIMU(const balboa_core::balboaLL &data)
+void callbackIMU(const balboa_core::balboaLL &msg)
 {
 	// Update robot IR data to use later
-	robotData = data;
+	IR1 = msg.IRsensor1;
+	IR2 = msg.IRsensor2;
+	IR4 = msg.IRsensor4;
+	IR5 = msg.IRsensor5;
 }
 
 int main(int argc, char **argv)
@@ -136,6 +132,12 @@ int main(int argc, char **argv)
 	int goToNextRow = 650;
 	int finishLine = 0;
 
+	// Create variable for storing reflectance sensor data for mapping
+	int snakeS1[16][4];
+	int snakeS2[16][4];
+	int snakeS4[16][4];
+	int snakeS5[16][4];
+
 	// Set loop rate
 	ros::Rate loop_rate(0.5);
 
@@ -152,28 +154,29 @@ int main(int argc, char **argv)
 			{
 				ros::spinOnce();
 
-				// struct IrValues irValues;
+				// struct IRvalues irValues;
 
 				// Drive the first row, 16 steps of approximately 1.5in at a time 
 				for (int j = 0; j < 16; j++)
 				{
+					// Grab latest sensor data
+					ros::spinOnce();
 
 					// Capture reflectance sensor data 
-					// irValues.sensor1 = robotData.IRsensor1;
-					// irValues.sensor2 = robotData.IRsensor2;
-					// irValues.sensor4 = robotData.IRsensor4;
-					// irValues.sensor5 = robotData.IRsensor5;
-
-					// rowCapture.insert(j, irValues);
+					snakeS1[j][i] = IR1;
+					snakeS2[j][i] = IR2;
+					snakeS4[j][i] = IR4;
+					snakeS5[j][i] = IR5;
 
 					// Publish next step 
 					targetDrive.data = 200;
 					pubDrive.publish(targetDrive);
 
 					ROS_INFO("Sent target: %d", targetDrive);
+					ROS_INFO("IR sensor data: %d , %d , %d , %d", snakeS1[j][i], snakeS2[j][i], snakeS4[j][i], snakeS5[j][i]);
 
 					// Sleep while waiting for robot to hit target 
-					ros::spinOnce();
+					// ros::spinOnce();
 					loop_rate.sleep();
 				}
 
@@ -203,7 +206,7 @@ int main(int argc, char **argv)
 					}
 				}
 
-				ROS_INFO(" == Completed first turn ");
+				ROS_INFO(" == Completed first turn == ");
 
 				// Drive to next row, approx. robot width 
 				targetDrive.data = goToNextRow;
@@ -242,10 +245,12 @@ int main(int argc, char **argv)
 		}
 
 		ROS_INFO(" == FINISHED MAPPING PROCEDURE == ");
+		printMap(snakeS1, snakeS2, snakeS4, snakeS5);
 
 		// Spin loop and sleep
 		ros::spinOnce();
 		loop_rate.sleep();
+
 	}
 
 	return 0;
