@@ -1,14 +1,17 @@
 #include "ros/ros.h"
 #include "balboa_core/balboaLL.h"
 #include "std_msgs/Int32.h"
-
 #include <cmath>
-
 #include <map>
 #include <string>
 
+// Declare and initialize variables
+balboa_core::balboaLL robotData;
+
+// Create variable for storing reflectance sensor data for mapping 
 std::map<int, int> exampleRow = {{0, 0}, {1, 0}, {2, 1}, {3, 1}, {4, 2}, {5, 2}, {6, 2}, {7, 1}, {8, 1}, {9, 0}, {10, 0}};
 
+// Store ASCII characters corresponding to mapped sensor values 
 std::string printMapRow(std::map<int, int> row, int i)
 {
 	std::string rowOutput = "row " + std::to_string(i) + " => ";
@@ -31,6 +34,7 @@ std::string printMapRow(std::map<int, int> row, int i)
 	return rowOutput;
 }
 
+// Print ASCII map from stored characters 
 void printMap(std::vector<std::map<int, int>> rows)
 {
 	int i = 0;
@@ -40,9 +44,6 @@ void printMap(std::vector<std::map<int, int>> rows)
 		i++;
 	}
 }
-
-// Declare and initialize variables
-balboa_core::balboaLL robotData;
 
 // Store robot IR data when received
 void callbackIMU(const balboa_core::balboaLL &data)
@@ -74,8 +75,6 @@ int main(int argc, char **argv)
 	std_msgs::Int32 targetAngle;
 
 	// Initialize map grid variables
-	int snake[200];
-
 	int totalRows = 4;
 	int rowLength = 3000;
 	int doneOnce = 0;
@@ -98,22 +97,24 @@ int main(int argc, char **argv)
 			// Drive robot through totalRows
 			for (int i = 0; i < totalRows; i++)
 			{
+				ros::spinOnce();
+
 				// Add robot's current encoder amount to the "finish line" or total row distance
-				finishLine = robotData.distanceRight + rowLength;
+				// finishLine = abs(robotData.distanceRight) + rowLength;
 
 				// Remember robot's current orientation
 				// targetAngle.data = robotData.angleX;
 				// targetDrive.data = robotData.distanceRight;
 
 				// Drive the first row
-				while (robotData.distanceRight < finishLine)
+				// while (abs(robotData.distanceRight) < abs(finishLine))
+				for (int j = 0; j < 5; j++)
 				{
 					targetDrive.data = 500;
 					pubDrive.publish(targetDrive);
 
 					// ROS_INFO("target: %d - Sens1: %d | Sens2: %d | Sens4: %d | Sens5: %d", targetDrive.data, robotData.IRsensor1, robotData.IRsensor2, robotData.IRsensor4, robotData.IRsensor5);
-					ROS_INFO("target: %d", targetDrive.data);
-					// snake[j - 1] = robotData.IRsensor1;
+					ROS_INFO("finish line: %d", finishLine);
 
 					ros::spinOnce();
 					loop_rate.sleep();
@@ -161,16 +162,6 @@ int main(int argc, char **argv)
 				// Make second 90 deg turn into row, alternate left and right turns
 				if (i % 2 == 0)
 				{
-					targetAngle.data = leftTurn;
-					pubTurn.publish(targetAngle);
-					while (abs(robotData.angleX) > abs(targetAngle.data))
-					{
-						ros::spinOnce();
-						// Do nothing
-					}
-				}
-				else
-				{
 					targetAngle.data = rightTurn;
 					pubTurn.publish(targetAngle);
 					while (abs(robotData.angleX) < abs(targetAngle.data))
@@ -179,9 +170,21 @@ int main(int argc, char **argv)
 						// Do nothing
 					}
 				}
+				else
+				{
+					targetAngle.data = leftTurn;
+					pubTurn.publish(targetAngle);
+					while (abs(robotData.angleX) > abs(targetAngle.data))
+					{
+						ros::spinOnce();
+						// Do nothing
+					}
+				}
 
 				ROS_INFO(" == Completed second turn! == ");
 			}
+
+			ros::spinOnce();
 		}
 
 		ROS_INFO(" == FINISHED MAPPING PROCEDURE == ");

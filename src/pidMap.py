@@ -46,10 +46,11 @@ def callbackIMU(msg):
 
     # PID error calculation
     angError = (targetAngle - msg.angleX)
-
     disError = (targetDistance - msg.distanceRight)
-    rospy.loginfo("targetDistance: %d | currentDistance: %d | targetAngle: %d | currentAngle: %d", targetDistance, msg.distanceRight, targetAngle, msg.angleX)
-    rospy.loginfo("disErrorVal: %d | angErrorVal: %d", disError, angError)
+
+    rospy.loginfo("targetDistance: %d", targetDistance);
+    # rospy.loginfo("targetDistance: %d | currentDistance: %d | targetAngle: %d | currentAngle: %d", targetDistance, msg.distanceRight, targetAngle, msg.angleX)
+    # rospy.loginfo("disErrorVal: %d | angErrorVal: %d", disError, angError)
     
     # PID calc for angle and distance
     angPidVal = (pValAng * angError) + (dValAng * (angError - oldAngError)) 
@@ -85,7 +86,7 @@ def pidSubscriptions():
 
     # Declare publishers and subscribers
     rospy.Subscriber('/mapDrive', Int32, callbackDrive, queue_size = 15)
-    rospy.Subscriber('/mapTurn', Int32, callbackTurn)
+    rospy.Subscriber('/mapTurn', Int32, callbackTurn, queue_size = 15)
     rospy.Subscriber('/balboaLL', balboaLL, callbackIMU)
     pubMotor = rospy.Publisher('/motorSpeeds', balboaMotorSpeeds, queue_size = 10)
 
@@ -96,7 +97,7 @@ def pidSubscriptions():
     while not rospy.is_shutdown():
 
         # State node has begun main loop
-        rospy.loginfo("looped")
+        rospy.loginfo("while")
 
         # Publish latest motor speeds 
         pubMotor.publish(motor)
