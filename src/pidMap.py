@@ -11,15 +11,11 @@ motor = balboaMotorSpeeds()
 targetAngle = 0
 targetDistance = 0
 
+# PID constants 
 pValAng = 0.0001
-dValAng = 0.00000001
-pValDis = 0.015
-dValDis = 0.0001
-
-# pValAng = rospy.get_param('/pidLab1/pValAng')
-# dValAng = rospy.get_param('/pidLab1/dValAng')
-# pValDis = rospy.get_param('/pidLab1/pValDis')
-# dValDis = rospy.get_param('/pidLab1/dValDis')
+dValAng = 0.0000001
+pValDis = 0.01
+dValDis = 0.0005
 
 initFlag = 0
 initIMU = balboaLL()
