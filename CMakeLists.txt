@@ -217,10 +217,6 @@ include_directories(
 # 	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # 	)
 
-add_executable(ir_reactive_control src/ir_reactive_control.cpp)
-target_link_libraries(ir_reactive_control ${catkin_LIBRARIES})
-add_dependencies(ir_reactive_control ${catkin_EXPORTED_TARGETS})
-
 add_executable(mapDrive src/mapDrive.cpp)
 target_link_libraries(mapDrive ${catkin_LIBRARIES})
 add_dependencies(mapDrive ${catkin_EXPORTED_TARGETS})
